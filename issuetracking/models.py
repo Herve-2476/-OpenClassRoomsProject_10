@@ -4,7 +4,10 @@ from django.conf import settings
 
 
 class User(AbstractUser):
+    
     email=models.EmailField(max_length=255)
+
+    
 
 class Contributor(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="users")
@@ -31,7 +34,7 @@ class Issue(models.Model):
     status=models.CharField(max_length=16,choices=([("to_do","A faire"),("in_progress","En cours"),("completed","Terminé")]))
     project=models.ForeignKey("Project",on_delete=models.CASCADE,related_name="project")    
     author=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="issue_author")
-    assignee=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="issue_assignee",default=author)
+    assignee=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="issue_assignee")
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
