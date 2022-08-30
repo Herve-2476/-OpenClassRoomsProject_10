@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 
-from issuetracking.models import User,Project
+from issuetracking.models import User,Project,Contributor,Issue,Comment
 
 
 
@@ -19,3 +19,19 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id','title','description','type','author']
+
+class ProjectUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contributor
+        fields = ['user','project','role']
+
+class ProjectIssueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issue
+        fields = ['title','description','tag','priority','status','project','author','assignee']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['issue','description','author']
