@@ -5,7 +5,7 @@ from issuetracking.models import User,Project,Contributor,Issue,Comment
 
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id','username','first_name','last_name','email','password']
@@ -13,6 +13,12 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self,validated_data):
         validated_data["password"] = make_password(validated_data["password"])
         return super().create(validated_data)
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username','password']
+
 
 
 class ProjectSerializer(serializers.ModelSerializer):

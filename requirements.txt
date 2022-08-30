@@ -3,3 +3,4 @@ djangorestframework
 flake8    
 flake8-html
 drf-nested-routers
+djangorestframework_simplejwt
