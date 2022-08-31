@@ -4,31 +4,28 @@ from rest_framework.permissions import IsAuthenticated
 from .models import User,Project,Contributor,Issue,Comment
 from .serializers import ProjectSerializer,ProjectUserSerializer
 from .serializers import ProjectIssueSerializer,CommentSerializer
-from .serializers import UserSignupSerializer,UserLoginSerializer
+from .serializers import UserSignupSerializer
 
 class UserSignupViewset( ModelViewSet):
     
     serializer_class = UserSignupSerializer
-    def get_queryset(self):
-        return None
-
-class UserLoginViewset( ModelViewSet):
-    
-    serializer_class = UserLoginSerializer
-    def get_queryset(self):
-        return None
-
-
-
+    http_method_names = ['post']
+ 
+   
 
 class ProjectViewset( ModelViewSet):
 
     serializer_class = ProjectSerializer    
 
     permission_classes=[IsAuthenticated]
-
+    http_method_names = ['post','get']
+    
     def get_queryset(self):
-        return Contributor.objects.filter(author=request.user)
+        
+        return Project.objects.filter(author=self.request.user)
+
+
+
 
 
 class ProjectUserViewset( ModelViewSet):

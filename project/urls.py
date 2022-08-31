@@ -1,16 +1,15 @@
 from rest_framework_nested import routers
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 
 from django.contrib import admin
 from django.urls import path,include
 
 from issuetracking.views import ProjectViewset,ProjectUserViewset
 from issuetracking.views import ProjectIssueViewset,CommentViewset 
-from issuetracking.views import UserSignupViewset,UserLoginViewset
+from issuetracking.views import UserSignupViewset
 
 router = routers.SimpleRouter()
 router.register('signup', UserSignupViewset, basename='user_signup')
-router.register('login', UserLoginViewset, basename='user_login')
 
 router.register('projects', ProjectViewset, basename='projects')
 
@@ -27,6 +26,7 @@ issue_router.register('comments', CommentViewset, basename='comments')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', TokenObtainPairView.as_view(), name='login'),
+    path('login/token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
     path('',include(router.urls)),
     path('',include(project_router.urls)),
     path('',include(issue_router.urls)),
