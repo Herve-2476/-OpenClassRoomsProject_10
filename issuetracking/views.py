@@ -1,8 +1,12 @@
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+
 
 from .models import User,Project,Contributor,Issue,Comment
-from .serializers import ProjectSerializer,ProjectUserSerializer
+from .serializers import ProjectListSerializer,ProjectDetailSerializer,ContributorSerializer
 from .serializers import ProjectIssueSerializer,CommentSerializer
 from .serializers import UserSignupSerializer
 
@@ -15,22 +19,33 @@ class UserSignupViewset( ModelViewSet):
 
 class ProjectViewset( ModelViewSet):
 
-    serializer_class = ProjectSerializer    
+    serializer_class = ProjectListSerializer    
 
     permission_classes=[IsAuthenticated]
-    http_method_names = ['post','get']
+    http_method_names = ['post','get','put','delete']
     
     def get_queryset(self):
-        
-        return Project.objects.filter(author=self.request.user)
+        if self.action=="retrieve":
+            project_id=self.kwargs['pk']
+            return Project.objects.filter(author=self.request.user,id=project_id)        
+        return Project.objects.filter(author=self.request.user)       
+    
+    
+    def destroy(self,request,*args,**kwargs):
+        project_id=self.kwargs['pk']
+        get_object_or_404(Project, author=self.request.user,id=project_id)
+        return super().destroy(self,request,*args,**kwargs)        
 
 
-
+    def get_serializer_class(self):
+        if self.action in ["retrieve","destroy"]:
+            return ProjectDetailSerializer
+        return super().get_serializer_class()  
 
 
 class ProjectUserViewset( ModelViewSet):
 
-    serializer_class = ProjectUserSerializer
+    serializer_class = ContributorSerializer
 
     permission_classes=[IsAuthenticated]
     

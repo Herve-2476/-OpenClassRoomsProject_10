@@ -11,7 +11,7 @@ class User(AbstractUser):
 
 class Contributor(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="users")
-    project=models.ForeignKey("Project",on_delete=models.CASCADE,related_name="projects")
+    project=models.ForeignKey("Project",on_delete=models.CASCADE,related_name="project_contributors")
     role=models.CharField(max_length=16,choices=[("author","Auteur"),("contributor","Contributeur")])
 
 class Project(models.Model):
@@ -20,7 +20,7 @@ class Project(models.Model):
     description=models.CharField(max_length=1024)
     type=models.CharField(max_length=16,choices=choices)
     contributors=models.ManyToManyField(settings.AUTH_USER_MODEL,through="Contributor",related_name="contributors")
-    author=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="project_author")
+    author=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="project_author") #à supprimer
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
@@ -32,7 +32,7 @@ class Issue(models.Model):
     tag=models.CharField(max_length=16,choices=([("bug","Bug"),("task","Tâche"),("improvement","Amélioration")]))
     priority=models.CharField(max_length=16,choices=([("low","Faible"),("normal","moyenne"),("high","Elevée")]))
     status=models.CharField(max_length=16,choices=([("to_do","A faire"),("in_progress","En cours"),("completed","Terminé")]))
-    project=models.ForeignKey("Project",on_delete=models.CASCADE,related_name="project")    
+    project=models.ForeignKey("Project",on_delete=models.CASCADE,related_name="issue")    
     author=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="issue_author")
     assignee=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="issue_assignee")
     date_created = models.DateTimeField(auto_now_add=True)

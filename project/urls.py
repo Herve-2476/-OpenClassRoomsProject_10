@@ -20,9 +20,6 @@ project_router.register('issues', ProjectIssueViewset, basename='projects_issues
 issue_router=routers.NestedSimpleRouter(project_router,'issues',lookup='issue')
 issue_router.register('comments', CommentViewset, basename='comments')
 
-
-
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', TokenObtainPairView.as_view(), name='login'),
