@@ -2,27 +2,30 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from .permissions import IsContributor,IsProjectOwnor
 from django.shortcuts import get_object_or_404
 
 
 from .models import User,Project,Contributor,Issue,Comment
-from .serializers import ProjectListSerializer,ProjectDetailSerializer,ContributorSerializer
+from .serializers import ProjectListSerializer,ProjectDetailSerializer
 from .serializers import ProjectIssueSerializer,CommentSerializer
 from .serializers import UserSignupSerializer
+from .serializers import ContributorSerializer,ContributorCreateSerializer
 
 class UserSignupViewset( ModelViewSet):
-    
-    serializer_class = UserSignupSerializer
+
     http_method_names = ['post']
+    serializer_class = UserSignupSerializer
+    
  
    
 
 class ProjectViewset( ModelViewSet):
 
-    serializer_class = ProjectListSerializer    
-
-    permission_classes=[IsAuthenticated]
     http_method_names = ['post','get','put','delete']
+    serializer_class = ProjectListSerializer 
+    permission_classes=[IsAuthenticated]
+    
     
     def get_queryset(self):
         if self.action=="retrieve":
@@ -43,20 +46,54 @@ class ProjectViewset( ModelViewSet):
         return super().get_serializer_class()  
 
 
+
+
+
 class ProjectUserViewset( ModelViewSet):
 
+    http_method_names = ['post','get','delete']
     serializer_class = ContributorSerializer
+    create_serializer_class=ContributorCreateSerializer
 
-    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAuthenticated,IsContributor]
+    owner_permission_classes=[IsAuthenticated(),IsProjectOwnor()]
+    
     
     def get_queryset(self):
+
         return Contributor.objects.filter(project=self.kwargs['project_pk'])
+
+    
+    def get_serializer_class(self):
+        if self.action=="create":
+            return self.create_serializer_class
+        return super().get_serializer_class()
+    
+    
+    def get_permissions(self):
+        print ("action = ",self.action)
+        if self.action != 'list':
+            return self.owner_permission_classes
+        return super().get_permissions()
+
+    def destroy(self,request,*args,**kwargs):
+        contributor=get_object_or_404(Contributor,user=self.kwargs['pk'])
+        self.kwargs['pk']=contributor.id
+        print("new kwargs = ",self.kwargs)
+        return super().destroy(self,request,*args,**kwargs)
+        
+
+
+
+
+
 
 class ProjectIssueViewset( ModelViewSet):
 
     serializer_class = ProjectIssueSerializer
 
     permission_classes=[IsAuthenticated]
+    
     
     def get_queryset(self):
         return Issue.objects.filter(project=self.kwargs['project_pk'])

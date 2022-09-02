@@ -12,7 +12,7 @@ class User(AbstractUser):
 class Contributor(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="users")
     project=models.ForeignKey("Project",on_delete=models.CASCADE,related_name="project_contributors")
-    role=models.CharField(max_length=16,choices=[("author","Auteur"),("contributor","Contributeur")])
+    role=models.CharField(max_length=16,choices=[("author","Auteur"),("collaborator","Conllaborateur")])
 
 class Project(models.Model):
     choices=[("backend","Back-end"),("frontend","Front-end"),("ios","IOS"),("android","Android")]

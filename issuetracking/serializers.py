@@ -1,6 +1,11 @@
+from ctypes.wintypes import HHOOK
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import password_validation
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import ValidationError
 
 from issuetracking.models import User,Project,Contributor,Issue,Comment,Contributor
 
@@ -34,6 +39,28 @@ class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
         fields =['id','user','project','role']
+
+class ContributorCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Contributor
+        fields =["user"]
+
+    def create(self,validate_data):
+        
+        project=Project.objects.filter(id=self.context["view"].kwargs["project_pk"])[0]
+        print (validate_data,project.contributors.all())
+        if validate_data["user"] not in project.contributors.all():
+            validate_data["role"]="collaborator"
+            validate_data["project"] = project
+            return super().create(validate_data)
+        print ("gagné")
+        raise ValidationError()
+
+    def destroy(self,validate_data):
+        print("OK destroy",validate_data)
+
+
 
 class ProjectListSerializer(serializers.ModelSerializer):
     
