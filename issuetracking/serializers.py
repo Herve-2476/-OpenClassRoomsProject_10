@@ -1,4 +1,3 @@
-from ctypes.wintypes import HHOOK
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import password_validation
@@ -16,9 +15,9 @@ class UserSignupSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id','username','first_name','last_name','email','password']
 
-    def create(self,validated_data):
-        validated_data["password"] = make_password(validated_data["password"])
-        return super().create(validated_data)    
+    def create(self,data):
+        data["password"] = make_password(data["password"])
+        return super().create(data)    
 
     def validate_password(self, value):
         password_validation.validate_password(value, self.instance)
@@ -46,19 +45,16 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
         model = Contributor
         fields =["user"]
 
-    def create(self,validate_data):
+    def create(self,data):
         
         project=Project.objects.filter(id=self.context["view"].kwargs["project_pk"])[0]
-        print (validate_data,project.contributors.all())
-        if validate_data["user"] not in project.contributors.all():
-            validate_data["role"]="collaborator"
-            validate_data["project"] = project
-            return super().create(validate_data)
-        print ("gagné")
+        
+        if data["user"] not in project.contributors.all():
+            data["role"]="collaborator"
+            data["project"] = project
+            return super().create(data)
         raise ValidationError()
 
-    def destroy(self,validate_data):
-        print("OK destroy",validate_data)
 
 
 
@@ -67,9 +63,9 @@ class ProjectListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project        
         fields = ['id','title','description','type','date_created','date_updated']
-    def create(self,validated_data):
-        validated_data["author"] = self.context["request"].user #à supprimer
-        project=super().create(validated_data)
+    def create(self,data):
+        data["author"] = self.context["request"].user #à supprimer
+        project=super().create(data)
         Contributor.objects.create(user=self.context["request"].user,project=project,role="author")
         
         return project
@@ -91,7 +87,31 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 class ProjectIssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
-        fields = ['title','description','tag','priority','status','project','author','assignee']
+        fields = ['id','title','description','tag','priority','status','assignee']
+
+    def create(self,data):
+        project=Project.objects.filter(id=self.context["view"].kwargs["project_pk"])[0]
+        if data["assignee"] in project.contributors.all():
+            data["author"]=self.context["request"].user            
+            data["project"]=project
+            return super().create(data)
+        raise ValidationError(detail="Assignee is not in the list contributors")
+
+    def update(self,instance,data):
+        project=Project.objects.filter(id=self.context["view"].kwargs["project_pk"])[0]
+        if data["assignee"] in project.contributors.all():
+            #data["author"]=self.context["request"].user            
+            #data["project"]=project
+            return super().update(instance,data)
+        raise ValidationError(detail="Assignee is not in the list contributors")
+
+
+
+
+
+
+
+
 
 
 class CommentSerializer(serializers.ModelSerializer):

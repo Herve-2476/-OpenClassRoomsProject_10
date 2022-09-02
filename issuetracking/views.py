@@ -2,7 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .permissions import IsContributor,IsProjectOwnor
+from .permissions import IsContributor,IsProjectOwner,IsIssueOwner
 from django.shortcuts import get_object_or_404
 
 
@@ -56,7 +56,7 @@ class ProjectUserViewset( ModelViewSet):
     create_serializer_class=ContributorCreateSerializer
 
     permission_classes=[IsAuthenticated,IsContributor]
-    owner_permission_classes=[IsAuthenticated(),IsProjectOwnor()]
+    owner_permission_classes=[IsAuthenticated(),IsProjectOwner()]
     
     
     def get_queryset(self):
@@ -71,7 +71,6 @@ class ProjectUserViewset( ModelViewSet):
     
     
     def get_permissions(self):
-        print ("action = ",self.action)
         if self.action != 'list':
             return self.owner_permission_classes
         return super().get_permissions()
@@ -79,24 +78,24 @@ class ProjectUserViewset( ModelViewSet):
     def destroy(self,request,*args,**kwargs):
         contributor=get_object_or_404(Contributor,user=self.kwargs['pk'])
         self.kwargs['pk']=contributor.id
-        print("new kwargs = ",self.kwargs)
         return super().destroy(self,request,*args,**kwargs)
-        
-
-
-
-
-
+ 
 
 class ProjectIssueViewset( ModelViewSet):
 
+    http_method_names = ['post','get','put','delete']
     serializer_class = ProjectIssueSerializer
+    permission_classes=[IsAuthenticated,IsContributor]    
+    owner_permission_classes=[IsAuthenticated(),IsIssueOwner()]
 
-    permission_classes=[IsAuthenticated]
-    
-    
+
     def get_queryset(self):
         return Issue.objects.filter(project=self.kwargs['project_pk'])
+
+    def get_permissions(self):
+        if self.action in ['update','destroy']:
+            return self.owner_permission_classes
+        return super().get_permissions()
 
 class CommentViewset( ModelViewSet):
 
