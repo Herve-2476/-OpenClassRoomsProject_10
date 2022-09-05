@@ -33,11 +33,12 @@ class UserSignupSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Ce champ ne peut être vide')
         return value
 
+
 class ContributorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributor
-        fields =['id','user','project','role']
+        fields =['user','role']
 
 class ContributorCreateSerializer(serializers.ModelSerializer):
 
@@ -78,7 +79,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     class Meta:
         
         model = Project        
-        fields = ['id','title','description','type','date_created','date_updated','project_contributors','issue']
+        fields = ['id','title','description','type','date_created','date_updated','project_contributors','issues']
     
 
 

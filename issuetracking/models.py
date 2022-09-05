@@ -32,7 +32,7 @@ class Issue(models.Model):
     tag=models.CharField(max_length=16,choices=([("bug","Bug"),("task","Tâche"),("improvement","Amélioration")]))
     priority=models.CharField(max_length=16,choices=([("low","Faible"),("normal","moyenne"),("high","Elevée")]))
     status=models.CharField(max_length=16,choices=([("to_do","A faire"),("in_progress","En cours"),("completed","Terminé")]))
-    project=models.ForeignKey("Project",on_delete=models.CASCADE,related_name="issue")    
+    project=models.ForeignKey("Project",on_delete=models.CASCADE,related_name="issues")    
     author=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="issue_author")
     assignee=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="issue_assignee")
     date_created = models.DateTimeField(auto_now_add=True)

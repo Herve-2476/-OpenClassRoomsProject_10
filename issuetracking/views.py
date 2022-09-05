@@ -1,6 +1,8 @@
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsContributor,IsProjectOwner,IsIssueOwner,IsCommentOwner
 from django.shortcuts import get_object_or_404
@@ -16,7 +18,17 @@ class UserSignupViewset( ModelViewSet):
 
     http_method_names = ['post']
     serializer_class = UserSignupSerializer
-    
+
+class UserViewset( ModelViewSet):
+
+    http_method_names = ['get']
+    serializer_class = UserSignupSerializer 
+    permission_classes=[IsAuthenticated]
+
+    def get_queryset(self):
+        if self.action=="list":
+            return User.objects.filter(username=self.request.user)        
+        raise ValidationError()   
  
    
 
@@ -25,6 +37,8 @@ class ProjectViewset( ModelViewSet):
     http_method_names = ['post','get','put','delete']
     serializer_class = ProjectListSerializer 
     permission_classes=[IsAuthenticated]
+    owner_permission_classes=[IsAuthenticated(),IsProjectOwner()]
+    contributor_permission_classes=[IsAuthenticated(),IsContributor()]
     
     
     def get_queryset(self):
@@ -43,7 +57,14 @@ class ProjectViewset( ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["retrieve","destroy"]:
             return ProjectDetailSerializer
-        return super().get_serializer_class()  
+        return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action in ['destroy','update']:
+            return self.owner_permission_classes
+        if self.action in ['retrieve']:
+            return self.contributor_permission_classes
+        return super().get_permissions() 
 
 
 
