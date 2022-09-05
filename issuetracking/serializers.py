@@ -64,7 +64,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         model = Project        
         fields = ['id','title','description','type','date_created','date_updated']
     def create(self,data):
-        data["author"] = self.context["request"].user #à supprimer
+        data["author"] = self.context["request"].user
         project=super().create(data)
         Contributor.objects.create(user=self.context["request"].user,project=project,role="author")
         
@@ -100,21 +100,19 @@ class ProjectIssueSerializer(serializers.ModelSerializer):
     def update(self,instance,data):
         project=Project.objects.filter(id=self.context["view"].kwargs["project_pk"])[0]
         if data["assignee"] in project.contributors.all():
-            #data["author"]=self.context["request"].user            
-            #data["project"]=project
             return super().update(instance,data)
         raise ValidationError(detail="Assignee is not in the list contributors")
-
-
-
-
-
-
-
-
 
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['issue','description','author']
+        fields = ['id','description']
+
+    def create(self,data):
+        data["author"] = self.context["request"].user
+        print(self.context["view"].kwargs)
+        data["issue"]=get_object_or_404(Issue,id=self.context["view"].kwargs["issue_pk"])
+        return super().create(data)
+
+    

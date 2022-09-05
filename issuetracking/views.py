@@ -2,7 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .permissions import IsContributor,IsProjectOwner,IsIssueOwner
+from .permissions import IsContributor,IsProjectOwner,IsIssueOwner,IsCommentOwner
 from django.shortcuts import get_object_or_404
 
 
@@ -96,14 +96,21 @@ class ProjectIssueViewset( ModelViewSet):
         if self.action in ['update','destroy']:
             return self.owner_permission_classes
         return super().get_permissions()
+   
+ 
 
 class CommentViewset( ModelViewSet):
 
+    http_method_names = ['post','get','put','delete']
     serializer_class = CommentSerializer
-
-    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAuthenticated,IsContributor]
+    owner_permission_classes=[IsAuthenticated(),IsCommentOwner()]
     
     def get_queryset(self):
         
-        return Comment.objects.filter(issue__project=self.kwargs['project_pk'],issue=self.kwargs['issue_pk'])
-        
+        return Comment.objects.filter(issue=self.kwargs['issue_pk'])
+
+    def get_permissions(self):
+        if self.action in ['update','destroy']:
+            return self.owner_permission_classes
+        return super().get_permissions()    

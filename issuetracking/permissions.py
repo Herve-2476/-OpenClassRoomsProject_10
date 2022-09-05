@@ -1,5 +1,5 @@
 from rest_framework.permissions import BasePermission
-from .models import Project,Contributor,Issue
+from .models import Project,Issue,Comment
 from django.shortcuts import get_object_or_404
 
 
@@ -21,6 +21,8 @@ class IsIssueOwner(BasePermission):
         issue =get_object_or_404(Issue,id=view.kwargs['pk'])
         return request.user == issue.author
 
-
-    #def has_object_permission(self, request, view, obj):
-        #return obj.user == request.user
+class IsCommentOwner(BasePermission):
+    message = 'You must be the author of this comment.'
+    def has_permission(self, request, view):
+        comment =get_object_or_404(Comment,id=view.kwargs['pk'])
+        return request.user == comment.author
