@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 
 from .models import User,Project,Contributor,Issue,Comment
 from .serializers import ProjectListSerializer,ProjectDetailSerializer
-from .serializers import ProjectIssueSerializer,CommentSerializer
+from .serializers import ProjectIssueSerializer,ProjectIssueCreateSerializer,CommentSerializer
 from .serializers import UserSignupSerializer
 from .serializers import ContributorSerializer,ContributorCreateSerializer
 
@@ -75,7 +75,6 @@ class ProjectUserViewset( ModelViewSet):
     http_method_names = ['post','get','delete']
     serializer_class = ContributorSerializer
     create_serializer_class=ContributorCreateSerializer
-
     permission_classes=[IsAuthenticated,IsContributor]
     owner_permission_classes=[IsAuthenticated(),IsProjectOwner()]
     
@@ -89,23 +88,28 @@ class ProjectUserViewset( ModelViewSet):
         if self.action=="create":
             return self.create_serializer_class
         return super().get_serializer_class()
-    
-    
+        
     def get_permissions(self):
+        #if 'pk' in self.kwargs the endpoint is http://127.0.0.1:8000/[project_pk]/users/[pk]/
+        if 'pk' in self.kwargs and self.action != "destroy":
+            raise ValidationError("only the delete method is allowed on this url")
         if self.action != 'list':
             return self.owner_permission_classes
         return super().get_permissions()
 
     def destroy(self,request,*args,**kwargs):
-        contributor=get_object_or_404(Contributor,user=self.kwargs['pk'])
-        self.kwargs['pk']=contributor.id
-        return super().destroy(self,request,*args,**kwargs)
+        contributor=get_object_or_404(Contributor,user=self.kwargs['pk'],project=self.kwargs['project_pk'])
+        if contributor.role=="collaborator":
+            self.kwargs['pk']=contributor.id
+            return super().destroy(self,request,*args,**kwargs)
+        raise ValidationError (detail="The author of the project cannot be deleted")
  
 
 class ProjectIssueViewset( ModelViewSet):
 
     http_method_names = ['post','get','put','delete']
     serializer_class = ProjectIssueSerializer
+    create_serializer_class = ProjectIssueCreateSerializer
     permission_classes=[IsAuthenticated,IsContributor]    
     owner_permission_classes=[IsAuthenticated(),IsIssueOwner()]
 
@@ -117,7 +121,11 @@ class ProjectIssueViewset( ModelViewSet):
         if self.action in ['update','destroy']:
             return self.owner_permission_classes
         return super().get_permissions()
-   
+
+    def get_serializer_class(self):
+        if self.action in ["create","update"]:
+            return self.create_serializer_class
+        return super().get_serializer_class()
  
 
 class CommentViewset( ModelViewSet):

@@ -54,7 +54,7 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
             data["role"]="collaborator"
             data["project"] = project
             return super().create(data)
-        raise ValidationError()
+        raise ValidationError(detail="The user you want to add is already a collaborator of this project")
 
 
 
@@ -85,10 +85,10 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
 
 
-class ProjectIssueSerializer(serializers.ModelSerializer):
+class ProjectIssueCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
-        fields = ['id','title','description','tag','priority','status','assignee']
+        fields = ['id','title','description','tag','priority','status','assignee','date_created','date_updated']
 
     def create(self,data):
         project=Project.objects.filter(id=self.context["view"].kwargs["project_pk"])[0]
@@ -96,13 +96,20 @@ class ProjectIssueSerializer(serializers.ModelSerializer):
             data["author"]=self.context["request"].user            
             data["project"]=project
             return super().create(data)
-        raise ValidationError(detail="Assignee is not in the list contributors")
+        raise ValidationError(detail="Assignee is not in the list of the contributors")
 
     def update(self,instance,data):
         project=Project.objects.filter(id=self.context["view"].kwargs["project_pk"])[0]
         if data["assignee"] in project.contributors.all():
             return super().update(instance,data)
-        raise ValidationError(detail="Assignee is not in the list contributors")
+        raise ValidationError(detail="Assignee is not in the list of the contributors")
+
+class ProjectIssueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issue
+        fields = ['id','title','description','tag','priority','status','author','assignee','date_created','date_updated']
+
+
 
 
 class CommentSerializer(serializers.ModelSerializer):
