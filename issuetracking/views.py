@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from .models import User,Project,Contributor,Issue,Comment
 from .serializers import ProjectListSerializer,ProjectDetailSerializer
 from .serializers import ProjectIssueSerializer,ProjectIssueCreateSerializer,CommentSerializer
-from .serializers import UserSignupSerializer
+from .serializers import UserSignupSerializer,CommentListSerializer
 from .serializers import ContributorSerializer,ContributorCreateSerializer
 
 class UserSignupViewset( ModelViewSet):
@@ -118,6 +118,12 @@ class ProjectIssueViewset( ModelViewSet):
         return Issue.objects.filter(project=self.kwargs['project_pk'])
 
     def get_permissions(self):
+        #if 'pk' in self.kwargs the endpoint is http://127.0.0.1:8000/[project_pk]/issues/[pk]/        
+        if 'pk' in self.kwargs and self.action not in ["destroy","update"]:
+            get_object_or_404(Issue,id=self.kwargs["pk"],project=self.kwargs["project_pk"])
+            raise ValidationError("only put method and delete method are allowed on this url")
+
+
         if self.action in ['update','destroy']:
             return self.owner_permission_classes
         return super().get_permissions()
@@ -135,11 +141,16 @@ class CommentViewset( ModelViewSet):
     permission_classes=[IsAuthenticated,IsContributor]
     owner_permission_classes=[IsAuthenticated(),IsCommentOwner()]
     
-    def get_queryset(self):
-        
+    def get_queryset(self):        
         return Comment.objects.filter(issue=self.kwargs['issue_pk'])
 
     def get_permissions(self):
+        get_object_or_404(Issue,id=self.kwargs["issue_pk"],project=self.kwargs["project_pk"])
         if self.action in ['update','destroy']:
             return self.owner_permission_classes
         return super().get_permissions()    
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CommentListSerializer
+        return super().get_serializer_class()
