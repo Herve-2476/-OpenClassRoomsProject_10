@@ -12,7 +12,6 @@ from .models import User, Project, Contributor, Issue, Comment
 from .serializers import ProjectListSerializer, ProjectDetailSerializer
 from .serializers import (
     ProjectIssueSerializer,
-    ProjectIssueCreateSerializer,
     CommentSerializer,
 )
 from .serializers import UserSignupSerializer
@@ -106,7 +105,6 @@ class ProjectIssueViewset(ModelViewSet):
 
     http_method_names = ["post", "get", "put", "delete"]
     serializer_class = ProjectIssueSerializer
-    create_serializer_class = ProjectIssueCreateSerializer
     permission_classes = [IsAuthenticated, IsContributor]
     owner_permission_classes = [IsAuthenticated(), IsIssueOwner()]
 
@@ -114,23 +112,13 @@ class ProjectIssueViewset(ModelViewSet):
         return Issue.objects.filter(project=self.kwargs["project_pk"])
 
     def get_permissions(self):
-        # if 'pk' in self.kwargs the endpoint is http://127.0.0.1:8000/[project_pk]/issues/[pk]/
-        if "pk" in self.kwargs and self.action not in ["destroy", "update"]:
-            get_object_or_404(
-                Issue, id=self.kwargs["pk"], project=self.kwargs["project_pk"]
-            )
-            raise ValidationError(
-                "only put method and delete method are allowed on this url"
-            )
+
+        if self.action == "retrieve":
+            raise ValidationError("get method are not allowed on this url")
 
         if self.action in ["update", "destroy"]:
             return self.owner_permission_classes
         return super().get_permissions()
-
-    def get_serializer_class(self):
-        if self.action in ["create", "update"]:
-            return self.create_serializer_class
-        return super().get_serializer_class()
 
 
 class CommentViewset(ModelViewSet):

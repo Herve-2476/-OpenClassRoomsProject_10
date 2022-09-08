@@ -93,7 +93,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         ]
 
 
-class ProjectIssueCreateSerializer(serializers.ModelSerializer):
+class ProjectIssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = [
@@ -103,6 +103,7 @@ class ProjectIssueCreateSerializer(serializers.ModelSerializer):
             "tag",
             "priority",
             "status",
+            "author_id",
             "assignee",
             "date_created",
             "date_updated",
@@ -126,23 +127,6 @@ class ProjectIssueCreateSerializer(serializers.ModelSerializer):
         if data["assignee"] in project.contributors.all():
             return super().update(instance, data)
         raise ValidationError(detail="Assignee is not in the list of the contributors")
-
-
-class ProjectIssueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Issue
-        fields = [
-            "id",
-            "title",
-            "description",
-            "tag",
-            "priority",
-            "status",
-            "author",
-            "assignee",
-            "date_created",
-            "date_updated",
-        ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
