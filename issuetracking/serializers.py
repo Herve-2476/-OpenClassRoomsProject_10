@@ -1,12 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import password_validation
-from rest_framework.response import Response
-from rest_framework import status
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
-
-from issuetracking.models import User, Project, Contributor, Issue, Comment, Contributor
+from issuetracking.models import User, Project, Contributor, Issue, Comment
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
@@ -38,12 +35,6 @@ class ContributorSerializer(serializers.ModelSerializer):
         model = Contributor
         fields = ["user", "role"]
 
-
-class ContributorCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Contributor
-        fields = ["user"]
-
     def create(self, data):
 
         project = Project.objects.filter(id=self.context["view"].kwargs["project_pk"])[
@@ -55,14 +46,22 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
             data["project"] = project
             return super().create(data)
         raise ValidationError(
-            detail="The user you want to add is already a collaborator of this project"
+            detail="The user you want to add is already a contributor of this project"
         )
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ["id", "title", "description", "type", "date_created", "date_updated"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "type",
+            "author_id",
+            "date_created",
+            "date_updated",
+        ]
 
     def create(self, data):
         data["author"] = self.context["request"].user
@@ -86,6 +85,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "type",
+            "author_id",
             "date_created",
             "date_updated",
             "project_contributors",

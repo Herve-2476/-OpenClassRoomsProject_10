@@ -1,7 +1,4 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsContributor, IsProjectOwner, IsIssueOwner, IsCommentOwner
@@ -15,7 +12,7 @@ from .serializers import (
     CommentSerializer,
 )
 from .serializers import UserSignupSerializer
-from .serializers import ContributorSerializer, ContributorCreateSerializer
+from .serializers import ContributorSerializer
 
 
 class UserSignupViewset(ModelViewSet):
@@ -31,7 +28,7 @@ class UserViewset(ModelViewSet):
     def get_queryset(self):
         if self.action == "list":
             return User.objects.filter(username=self.request.user)
-        raise ValidationError()
+        raise ValidationError(detail="This url is not an endpoint")
 
 
 class ProjectViewset(ModelViewSet):
@@ -45,16 +42,11 @@ class ProjectViewset(ModelViewSet):
     def get_queryset(self):
         if self.action == "retrieve":
             project_id = self.kwargs["pk"]
-            return Project.objects.filter(author=self.request.user, id=project_id)
+            return Project.objects.filter(id=project_id)
         return Project.objects.filter(author=self.request.user)
 
-    def destroy(self, request, *args, **kwargs):
-        project_id = self.kwargs["pk"]
-        get_object_or_404(Project, author=self.request.user, id=project_id)
-        return super().destroy(self, request, *args, **kwargs)
-
     def get_serializer_class(self):
-        if self.action in ["retrieve", "destroy"]:
+        if self.action in ["retrieve"]:
             return ProjectDetailSerializer
         return super().get_serializer_class()
 
@@ -66,28 +58,20 @@ class ProjectViewset(ModelViewSet):
         return super().get_permissions()
 
 
-class ProjectUserViewset(ModelViewSet):
+class ProjectContributorViewset(ModelViewSet):
 
     http_method_names = ["post", "get", "delete"]
     serializer_class = ContributorSerializer
-    create_serializer_class = ContributorCreateSerializer
     permission_classes = [IsAuthenticated, IsContributor]
     owner_permission_classes = [IsAuthenticated(), IsProjectOwner()]
 
     def get_queryset(self):
-
         return Contributor.objects.filter(project=self.kwargs["project_pk"])
 
-    def get_serializer_class(self):
-        if self.action == "create":
-            return self.create_serializer_class
-        return super().get_serializer_class()
-
     def get_permissions(self):
-        # if 'pk' in self.kwargs the endpoint is http://127.0.0.1:8000/[project_pk]/users/[pk]/
-        if "pk" in self.kwargs and self.action != "destroy":
+        if self.action in ["retrieve", "update"]:
             raise ValidationError("only the delete method is allowed on this url")
-        if self.action != "list":
+        if self.action in ["create", "update"]:
             return self.owner_permission_classes
         return super().get_permissions()
 

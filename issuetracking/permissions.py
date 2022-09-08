@@ -12,7 +12,6 @@ class IsContributor(BasePermission):
             id_project = view.kwargs["project_pk"]
         else:
             id_project = view.kwargs["pk"]
-
         project = get_object_or_404(Project, id=id_project)
         return request.user in project.contributors.all()
 

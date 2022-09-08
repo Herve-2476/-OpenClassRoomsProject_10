@@ -16,6 +16,7 @@ class Contributor(models.Model):
         "Project", on_delete=models.CASCADE, related_name="project_contributors"
     )
     role = models.CharField(
+        default="collaborator",
         max_length=16,
         choices=[("author", "Auteur"), ("collaborator", "Conllaborateur")],
     )
