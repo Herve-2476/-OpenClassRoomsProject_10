@@ -1,10 +1,12 @@
-This project aims to develop a web application. This application allows you to request or publish reviews of books or articles.
+SOFTDESK, a software development and collaboration company, has decided to release an issue tracking system. This solution is aimed at b2b customers.
+
+You can find the documentation of this API by following this link : https://documenter.getpostman.com/view/22986696/VUxNSo2k
 
 ## Clone of the repository
 
-* git clone https://github.com/Herve-2476/OpenClassRoomsProject_9.git
+* git clone https://github.com/Herve-2476/OpenClassRoomsProject_10.git
 
-* cd OpenClassRoomsProject_9
+* cd OpenClassRoomsProject_10
 
 
 ## Creation of the virtual environment (Python 3.10)
@@ -24,11 +26,7 @@ This project aims to develop a web application. This application allows you to r
 
 ## Use of the program
 
-* Open your browser and write in the address bar: __127.0.0.1:8000__ or __localhost:8000__
-
-* Create an account
-
-* There are three users already created that you can follow : __pop1__, __pop2__, __pop3__
+* You can test the API with Postman, Django, curl... 
 
 ## Compliance with PEP 8 guidelines
 
