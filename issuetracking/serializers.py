@@ -42,7 +42,6 @@ class ContributorSerializer(serializers.ModelSerializer):
         ]
 
         if data["user"] not in project.contributors.all():
-            data["role"] = "collaborator"
             data["project"] = project
             return super().create(data)
         raise ValidationError(
